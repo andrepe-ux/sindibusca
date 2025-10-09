@@ -17,6 +17,8 @@
 }
 @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
 #editor { min-height: 200px; max-height: 300px; overflow-y: auto; }
+.news-item img { max-width: 100%; border-radius: 0.5rem; margin-bottom: 0.25rem; }
+.news-item a { text-decoration: underline; }
 </style>
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 pb-12">
@@ -79,7 +81,7 @@
 <!-- Facebook Posts -->
 <section class="bg-blue-100 rounded-xl shadow p-4" id="facebook-card">
   <div class="mb-2">
-    <h2 class="text-lg font-semibold text-blue-700">Facebook (Posts Sindicatos/Trabalho) <span id="facebook-count" class="text-gray-500 text-sm"></span></h2>
+    <h2 class="text-lg font-semibold text-blue-700">Facebook (Principais Posts Sindicatos Portugal) <span id="facebook-count" class="text-gray-500 text-sm"></span></h2>
   </div>
   <div id="facebook-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
     <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar posts...</div>
@@ -89,7 +91,7 @@
 <!-- Instagram Posts -->
 <section class="bg-blue-100 rounded-xl shadow p-4" id="instagram-card">
   <div class="mb-2">
-    <h2 class="text-lg font-semibold text-blue-700">Instagram (Posts Sindicatos/Trabalho) <span id="instagram-count" class="text-gray-500 text-sm"></span></h2>
+    <h2 class="text-lg font-semibold text-blue-700">Instagram (Principais Posts Sindicatos Portugal) <span id="instagram-count" class="text-gray-500 text-sm"></span></h2>
   </div>
   <div id="instagram-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
     <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar posts...</div>
@@ -131,7 +133,6 @@
 </footer>
 
 <script>
-// Referências
 const el = {
   dias: document.getElementById('dias'),
   refresh: document.getElementById('refresh'),
@@ -160,42 +161,27 @@ const el = {
   exportTxt: document.getElementById('exportTxt')
 };
 
-// Spinner
-function loadingMessage(container) {
-  container.innerHTML = `<div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar...</div>`;
+function loadingMessage(container, msg='A carregar...'){
+  container.innerHTML=`<div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> ${msg}</div>`;
 }
 
-// RSS utils
 function buildProxyUrl(url){return 'https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url);}
 async function fetchFeed(url){const r=await fetch(buildProxyUrl(url));if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
-function parseRssItems(feedJson){if(!feedJson.items)return[];return feedJson.items.map(it=>({title:it.title,link:it.link,pubDate:new Date(it.pubDate),description:it.description}));}
+function parseRssItems(feedJson){if(!feedJson.items)return[];return feedJson.items.map(it=>({title:it.title,link:it.link,pubDate:new Date(it.pubDate),description:it.description,thumbnail:it.thumbnail||''}));}
 function isWithinDays(date,days){if(!date)return false;const diff=(new Date()-date)/(1000*60*60*24);return diff<=days;}
 function renderList(container,items,dias){
   if(!items.length){container.innerHTML=`<p class="text-gray-500">${dias>0?'Sem resultados nos últimos '+dias+' dia(s).':'Sem resultados.'}</p>`;return;}
   container.innerHTML=items.map(it=>`
-    <div class="mb-3 border-b border-gray-200 pb-2 last:border-b-0">
+    <div class="news-item mb-3 border-b border-gray-200 pb-2 last:border-b-0">
+      ${it.thumbnail?`<img src="${it.thumbnail}" alt="${it.title}">`:''}
       <div class="font-medium text-green-700"><a href="${it.link}" target="_blank">${it.title}</a></div>
       <div class="text-xs text-gray-400">${it.pubDate.toLocaleString('pt-PT')}</div>
       <div class="text-sm text-gray-600">${it.description?.replace(/<[^>]+>/g,'').slice(0,240)}</div>
     </div>`).join('');
 }
 
-// Termos para Facebook e Instagram
-const termosSindicatoPT = [
-  "sindicato",
-  "cesp",
-  "abril abril",
-  "sitese",
-  "aped",
-  "contrato coletivo",
-  "manifestações sindicais",
-  "reclamações de trabalhadores",
-  "trabalho",
-  "sindicalização",
-  "greves"
-].join(" OR ");
+const termosPrincipaisSindicatoPT = ["sindicato","cesp","sitese","aped","abril abril","contrato coletivo","manifestações sindicais","reclamações de trabalhadores","trabalho","sindicalização","greves"].join(" OR ");
 
-// Notícias gerais
 async function loadNews(term,container,countEl,dias,site='pt'){
   loadingMessage(container);
   countEl.textContent='';
@@ -209,54 +195,45 @@ async function loadNews(term,container,countEl,dias,site='pt'){
   }catch(e){container.innerHTML=`<p class="text-red-500">Erro a carregar: ${e.message}</p>`;}
 }
 
-// Facebook
 async function loadFacebookPosts(container,countEl){
-  loadingMessage(container);
+  loadingMessage(container,'A carregar posts do Facebook...');
   countEl.textContent='';
-  const q = encodeURIComponent(`${termosSindicatoPT} site:facebook.com Portugal`);
+  const q = encodeURIComponent(`${termosPrincipaisSindicatoPT} site:facebook.com Portugal`);
   const feed = `https://news.google.com/rss/search?q=${q}&hl=pt-PT&gl=PT&ceid=PT:pt`;
   try{
     const data = await fetchFeed(feed);
     let items = parseRssItems(data).sort((a,b)=>b.pubDate - a.pubDate);
     renderList(container, items.slice(0,50), 0);
     countEl.textContent = `(${items.length} post${items.length !== 1 ? 's' : ''})`;
-  }catch(e){
-    container.innerHTML = `<p class="text-red-500">Erro a carregar: ${e.message}</p>`;
-  }
+  }catch(e){container.innerHTML = `<p class="text-red-500">Erro a carregar: ${e.message}</p>`;}
 }
 
-// Instagram
 async function loadInstagramPosts(container,countEl){
-  loadingMessage(container);
+  loadingMessage(container,'A carregar posts do Instagram...');
   countEl.textContent='';
-  const q = encodeURIComponent(`${termosSindicatoPT} site:instagram.com Portugal`);
+  const q = encodeURIComponent(`${termosPrincipaisSindicatoPT} site:instagram.com Portugal`);
   const feed = `https://news.google.com/rss/search?q=${q}&hl=pt-PT&gl=PT&ceid=PT:pt`;
   try{
     const data = await fetchFeed(feed);
     let items = parseRssItems(data).sort((a,b)=>b.pubDate - a.pubDate);
     renderList(container, items.slice(0,50), 0);
     countEl.textContent = `(${items.length} post${items.length !== 1 ? 's' : ''})`;
-  }catch(e){
-    container.innerHTML = `<p class="text-red-500">Erro a carregar: ${e.message}</p>`;
-  }
+  }catch(e){container.innerHTML = `<p class="text-red-500">Erro a carregar: ${e.message}</p>`;}
 }
 
-// Refresh
 async function refresh(){
   const dias = parseInt(el.dias.value)||5;
-  await Promise.all([
-    loadNews('sindicatos Portugal', el.lists.sindicatos, el.counts.sindicatos, dias),
-    loadNews('manifestações Portugal', el.lists.manifestacoes, el.counts.manifestacoes, dias),
-    loadNews('retalho alimentar Portugal', el.lists.retalho, el.counts.retalho, dias),
-    loadNews('Mercadona Portugal', el.lists.mercadona, el.counts.mercadona, dias),
-    loadFacebookPosts(el.lists.facebook, el.counts.facebook),
-    loadInstagramPosts(el.lists.instagram, el.counts.instagram)
-  ]);
+  // Atualização por seção sem bloquear a página
+  loadNews('sindicatos Portugal', el.lists.sindicatos, el.counts.sindicatos, dias);
+  loadNews('manifestações Portugal', el.lists.manifestacoes, el.counts.manifestacoes, dias);
+  loadNews('retalho alimentar Portugal', el.lists.retalho, el.counts.retalho, dias);
+  loadNews('Mercadona Portugal', el.lists.mercadona, el.counts.mercadona, dias);
+  loadFacebookPosts(el.lists.facebook, el.counts.facebook);
+  loadInstagramPosts(el.lists.instagram, el.counts.instagram);
 }
 el.refresh.addEventListener('click',refresh);
 refresh();
 
-// Pesquisa livre
 el.btnPesquisa.addEventListener('click', async ()=>{
   const termo=el.pesquisaLivre.value.trim();
   if(!termo){el.lists.livre.innerHTML='<p class="text-gray-500">Escreva um termo para pesquisar.</p>';return;}
@@ -265,13 +242,12 @@ el.btnPesquisa.addEventListener('click', async ()=>{
 });
 el.pesquisaLivre.addEventListener('keydown',e=>{if(e.key==='Enter')el.btnPesquisa.click();});
 
-// Apontamentos
 el.colorPicker.addEventListener('input',()=>{document.execCommand('foreColor',false,el.colorPicker.value);});
 el.exportTxt.addEventListener('click',()=>{
-  const text=el.editor.innerText;
-  const blob=new Blob([text],{type:'text/plain'});
+  const text=el.editor.innerHTML; // Preserva formatação HTML
+  const blob=new Blob([text],{type:'text/html'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='apontamentos.txt';a.click();
+  const a=document.createElement('a');a.href=url;a.download='apontamentos.html';a.click();
   URL.revokeObjectURL(url);
 });
 </script>
