@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WEB-Notícias — Sindicatos e Trabalho</title>
+<link rel="icon" href="https://img.icons8.com/ios-filled/50/4caf50/news.png" type="image/png">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4caf50;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+#editor { min-height: 200px; max-height: 300px; overflow-y: auto; }
+</style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 pb-12">
+
+<header class="mb-6">
+  <h1 class="text-2xl font-bold text-green-700">WEB-Notícias: Sindicatos e Trabalho</h1>
+  <div class="flex flex-wrap items-center gap-3 mt-3">
+    <label class="flex items-center gap-1">
+      Dias a mostrar:
+      <input id="dias" type="number" value="5" min="1" max="30" class="border rounded px-2 py-1 w-16">
+    </label>
+    <button id="refresh" class="px-3 py-1 border rounded bg-green-600 text-white shadow hover:bg-green-700">
+      Atualizar notícias
+    </button>
+  </div>
+</header>
+
+<main class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+<!-- Sindicatos -->
+<section class="bg-white rounded-xl shadow p-4" id="sindicatos-card">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold text-green-700">Sindicatos e Sindicalização <span id="sindicatos-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div id="sindicatos-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar...</div>
+  </div>
+</section>
+
+<!-- Manifestações -->
+<section class="bg-white rounded-xl shadow p-4" id="manifestacoes-card">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold text-green-700">Manifestações e Greves <span id="manifestacoes-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div id="manifestacoes-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar...</div>
+  </div>
+</section>
+
+<!-- Retalho Alimentar -->
+<section class="bg-white rounded-xl shadow p-4" id="retalho-card">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold text-green-700">Retalho Alimentar e Trabalho <span id="retalho-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div id="retalho-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar...</div>
+  </div>
+</section>
+
+<!-- Mercadona -->
+<section class="bg-white rounded-xl shadow p-4" id="mercadona-card">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-lg font-semibold text-green-700">Mercadona e Relações Laborais <span id="mercadona-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div id="mercadona-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar...</div>
+  </div>
+</section>
+
+<!-- Facebook Posts -->
+<section class="bg-blue-100 rounded-xl shadow p-4" id="facebook-card">
+  <div class="mb-2">
+    <h2 class="text-lg font-semibold text-blue-700">Facebook (Posts Sindicatos/Trabalho) <span id="facebook-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div id="facebook-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar posts...</div>
+  </div>
+</section>
+
+<!-- Instagram Posts -->
+<section class="bg-blue-100 rounded-xl shadow p-4" id="instagram-card">
+  <div class="mb-2">
+    <h2 class="text-lg font-semibold text-blue-700">Instagram (Posts Sindicatos/Trabalho) <span id="instagram-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div id="instagram-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar posts...</div>
+  </div>
+</section>
+
+<!-- Pesquisa Livre -->
+<section class="bg-white rounded-xl shadow p-4 col-span-1 md:col-span-2" id="livre-card">
+  <div class="mb-2">
+    <h2 class="text-lg font-semibold text-green-700">Pesquisa Livre (Relacionada com Trabalho) <span id="livre-count" class="text-gray-500 text-sm"></span></h2>
+  </div>
+  <div class="flex items-center gap-2 mb-3">
+    <input id="pesquisaLivre" type="text" placeholder="Ex: greves, direitos laborais..." class="border rounded px-2 py-1 flex-1">
+    <button id="btnPesquisa" class="px-3 py-1 border rounded bg-white shadow hover:bg-gray-50">Pesquisar</button>
+  </div>
+  <div id="livre-list" class="text-sm text-gray-600 min-h-[150px] max-h-96 overflow-y-auto">
+    <p class="text-gray-500">Digite um termo e clique em “Pesquisar”.</p>
+  </div>
+</section>
+
+<!-- Apontamentos -->
+<section class="bg-white rounded-xl shadow p-4 col-span-1 md:col-span-2">
+  <h2 class="text-lg font-semibold mb-2">Apontamentos</h2>
+  <div class="flex flex-wrap gap-2 mb-2">
+    <button onclick="document.execCommand('bold')" class="px-2 py-1 border rounded">Negrito</button>
+    <button onclick="document.execCommand('underline')" class="px-2 py-1 border rounded">Sublinhado</button>
+    <button onclick="document.execCommand('strikeThrough')" class="px-2 py-1 border rounded">Rasurado</button>
+    <button onclick="document.execCommand('insertOrderedList')" class="px-2 py-1 border rounded">Lista</button>
+    <input type="color" id="colorPicker" title="Cor da letra" class="w-10 h-8 border rounded">
+    <button id="exportTxt" class="px-2 py-1 border rounded">Exportar .txt</button>
+  </div>
+  <div id="editor" contenteditable="true" class="border rounded p-2 bg-gray-50"></div>
+</section>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 w-full bg-gray-200 text-center text-sm text-gray-700 py-2 shadow-inner">
+  andrepe © 2025
+</footer>
+
+<script>
+// Referências
+const el = {
+  dias: document.getElementById('dias'),
+  refresh: document.getElementById('refresh'),
+  pesquisaLivre: document.getElementById('pesquisaLivre'),
+  btnPesquisa: document.getElementById('btnPesquisa'),
+  lists: {
+    sindicatos: document.getElementById('sindicatos-list'),
+    manifestacoes: document.getElementById('manifestacoes-list'),
+    retalho: document.getElementById('retalho-list'),
+    mercadona: document.getElementById('mercadona-list'),
+    facebook: document.getElementById('facebook-list'),
+    instagram: document.getElementById('instagram-list'),
+    livre: document.getElementById('livre-list')
+  },
+  counts: {
+    sindicatos: document.getElementById('sindicatos-count'),
+    manifestacoes: document.getElementById('manifestacoes-count'),
+    retalho: document.getElementById('retalho-count'),
+    mercadona: document.getElementById('mercadona-count'),
+    facebook: document.getElementById('facebook-count'),
+    instagram: document.getElementById('instagram-count'),
+    livre: document.getElementById('livre-count')
+  },
+  editor: document.getElementById('editor'),
+  colorPicker: document.getElementById('colorPicker'),
+  exportTxt: document.getElementById('exportTxt')
+};
+
+// Spinner
+function loadingMessage(container) {
+  container.innerHTML = `<div class="flex justify-center items-center h-full"><span class="spinner mr-2"></span> A carregar...</div>`;
+}
+
+// RSS utils
+function buildProxyUrl(url){return 'https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(url);}
+async function fetchFeed(url){const r=await fetch(buildProxyUrl(url));if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
+function parseRssItems(feedJson){if(!feedJson.items)return[];return feedJson.items.map(it=>({title:it.title,link:it.link,pubDate:new Date(it.pubDate),description:it.description}));}
+function isWithinDays(date,days){if(!date)return false;const diff=(new Date()-date)/(1000*60*60*24);return diff<=days;}
+function renderList(container,items,dias){
+  if(!items.length){container.innerHTML=`<p class="text-gray-500">${dias>0?'Sem resultados nos últimos '+dias+' dia(s).':'Sem resultados.'}</p>`;return;}
+  container.innerHTML=items.map(it=>`
+    <div class="mb-3 border-b border-gray-200 pb-2 last:border-b-0">
+      <div class="font-medium text-green-700"><a href="${it.link}" target="_blank">${it.title}</a></div>
+      <div class="text-xs text-gray-400">${it.pubDate.toLocaleString('pt-PT')}</div>
+      <div class="text-sm text-gray-600">${it.description?.replace(/<[^>]+>/g,'').slice(0,240)}</div>
+    </div>`).join('');
+}
+
+// Termos para Facebook e Instagram
+const termosSindicatoPT = [
+  "sindicato",
+  "cesp",
+  "abril abril",
+  "sitese",
+  "aped",
+  "contrato coletivo",
+  "manifestações sindicais",
+  "reclamações de trabalhadores",
+  "trabalho",
+  "sindicalização",
+  "greves"
+].join(" OR ");
+
+// Notícias gerais
+async function loadNews(term,container,countEl,dias,site='pt'){
+  loadingMessage(container);
+  countEl.textContent='';
+  const q=encodeURIComponent(`${term} (sindicato OR sindicalização OR laboral OR trabalho) site:${site}`);
+  const feed=`https://news.google.com/rss/search?q=${q}&hl=pt-PT&gl=PT&ceid=PT:pt`;
+  try{
+    const data=await fetchFeed(feed);
+    let items=parseRssItems(data).filter(it=>dias>0?isWithinDays(it.pubDate,dias):true).sort((a,b)=>b.pubDate-a.pubDate);
+    renderList(container,items.slice(0,40),dias);
+    countEl.textContent=`(${items.length} notícia${items.length!==1?'s':''})`;
+  }catch(e){container.innerHTML=`<p class="text-red-500">Erro a carregar: ${e.message}</p>`;}
+}
+
+// Facebook
+async function loadFacebookPosts(container,countEl){
+  loadingMessage(container);
+  countEl.textContent='';
+  const q = encodeURIComponent(`${termosSindicatoPT} site:facebook.com Portugal`);
+  const feed = `https://news.google.com/rss/search?q=${q}&hl=pt-PT&gl=PT&ceid=PT:pt`;
+  try{
+    const data = await fetchFeed(feed);
+    let items = parseRssItems(data).sort((a,b)=>b.pubDate - a.pubDate);
+    renderList(container, items.slice(0,50), 0);
+    countEl.textContent = `(${items.length} post${items.length !== 1 ? 's' : ''})`;
+  }catch(e){
+    container.innerHTML = `<p class="text-red-500">Erro a carregar: ${e.message}</p>`;
+  }
+}
+
+// Instagram
+async function loadInstagramPosts(container,countEl){
+  loadingMessage(container);
+  countEl.textContent='';
+  const q = encodeURIComponent(`${termosSindicatoPT} site:instagram.com Portugal`);
+  const feed = `https://news.google.com/rss/search?q=${q}&hl=pt-PT&gl=PT&ceid=PT:pt`;
+  try{
+    const data = await fetchFeed(feed);
+    let items = parseRssItems(data).sort((a,b)=>b.pubDate - a.pubDate);
+    renderList(container, items.slice(0,50), 0);
+    countEl.textContent = `(${items.length} post${items.length !== 1 ? 's' : ''})`;
+  }catch(e){
+    container.innerHTML = `<p class="text-red-500">Erro a carregar: ${e.message}</p>`;
+  }
+}
+
+// Refresh
+async function refresh(){
+  const dias = parseInt(el.dias.value)||5;
+  await Promise.all([
+    loadNews('sindicatos Portugal', el.lists.sindicatos, el.counts.sindicatos, dias),
+    loadNews('manifestações Portugal', el.lists.manifestacoes, el.counts.manifestacoes, dias),
+    loadNews('retalho alimentar Portugal', el.lists.retalho, el.counts.retalho, dias),
+    loadNews('Mercadona Portugal', el.lists.mercadona, el.counts.mercadona, dias),
+    loadFacebookPosts(el.lists.facebook, el.counts.facebook),
+    loadInstagramPosts(el.lists.instagram, el.counts.instagram)
+  ]);
+}
+el.refresh.addEventListener('click',refresh);
+refresh();
+
+// Pesquisa livre
+el.btnPesquisa.addEventListener('click', async ()=>{
+  const termo=el.pesquisaLivre.value.trim();
+  if(!termo){el.lists.livre.innerHTML='<p class="text-gray-500">Escreva um termo para pesquisar.</p>';return;}
+  const dias=parseInt(el.dias.value)||5;
+  await loadNews(termo,el.lists.livre,el.counts.livre,dias);
+});
+el.pesquisaLivre.addEventListener('keydown',e=>{if(e.key==='Enter')el.btnPesquisa.click();});
+
+// Apontamentos
+el.colorPicker.addEventListener('input',()=>{document.execCommand('foreColor',false,el.colorPicker.value);});
+el.exportTxt.addEventListener('click',()=>{
+  const text=el.editor.innerText;
+  const blob=new Blob([text],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='apontamentos.txt';a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
